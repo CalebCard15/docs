@@ -3,31 +3,238 @@ title: 'Introduction'
 description: 'Example section for showcasing API endpoints'
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+# Echo Webhook API
+    
+This specification documents the webhooks exposed by Echo for customers to receive real-time data.
 
-## Welcome
+## Overview
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+Echo provides webhook functionality that allows customers to receive real-time data via HTTP POST requests 
+to their registered endpoints. Webhooks are authenticated using HMAC-SHA256 signatures to ensure that
+payloads are securely delivered and can be verified as originating from Echo.
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.yaml"
->
-  View the OpenAPI specification file
-</Card>
+## Webhook Registration Process
 
-## Authentication
+The following steps outline the process for registering your webhook with Echo which will allow us to submit event driven data to your URL.
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+### Step 1: Prepare Your Secure Endpoint and Authentication Credentials
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
+Before starting the registration process, you should have the following information ready:
+
+* **HTTPS URL**: Your webhook endpoint **must** use HTTPS with a valid SSL certificate. Unsecured HTTP endpoints will not be accepted for webhook registration.
+
+* **Client Secret**: This secret will be used to validate that payloads sent to your URL are from our service. Your Client Secret must meet the following requirements:
+  * Length: Minimum of 24 characters, maximum of 128 characters
+  * Complexity: Must include at least:
+    * One uppercase letter
+    * One lowercase letter
+    * One number
+  * Avoid using easily guessable patterns or dictionary words
+  * Do not reuse secrets from other services
+
+While special characters are not required, they are recommended. Keep in mind the allowed symbols include:
+
 ```
+@ # $ % & * ! ? [ ] { } ( ) < > + - _ . , : ; ~ ` ^ | \ and /
+```
+
+* **API Key** (Optional): If your webhook requires an API key for authentication, please have this ready. This key will be passed in the request header as described in the Webhook Headers section. We recommend:
+  * Using a dedicated API key specific to Echo webhooks for better tracking and security
+  * Setting appropriate permission levels that allow only the required access
+
+### Step 2: Submit Your Information via Email
+
+Submit your URL and Client Secret to our Technical Integrations team via email. Please ensure that you send this information securely to protect your Client Secret.
+
+### Step 3: Validation
+
+After you submit your information, we will send a test payload to your URL with a unique identifier. You should use your Client Secret to validate this payload.
+
+### Step 4: Confirmation
+
+Once you have successfully validated the test payload, confirm the validation with our Technical Integrations team via email.
+
+### Step 5: Completion
+
+After confirmation, your webhook registration is complete! You will now start receiving payloads at your specified URL.
+
+## Webhook Payload Validation
+
+The following steps outline the process for validating a webhook payload:
+
+### Step 1: Receive the Payload
+
+When you receive a webhook payload, it will come with an `X-Echo-Hmac-SHA256` header. This header contains a base64-encoded HMAC-SHA256 hash of the payload, generated using your Client Secret.
+
+### Step 2: Generate Your Own HMAC
+
+To validate the payload, you should generate your own HMAC-SHA256 hash of the payload using your Client Secret. This should also be base64-encoded.
+
+### Step 3: Compare the HMACs
+
+Compare the HMAC in the `X-Echo-Hmac-SHA256` header with the HMAC you generated. If they match, then the payload is valid and was sent from our service.
+
+### HMAC Verification Example
+
+**Python**
+```python
+import hashlib
+import hmac
+import base64
+
+# In this function, data is the received payload and secret is your Client Secret.
+def generate_hmac(data, secret):
+    hmac_obj = hmac.new(secret.encode(), msg=data.encode(), digestmod=hashlib.sha256)
+    return base64.b64encode(hmac_obj.digest()).decode()
+
+# In this function, received_hmac is the HMAC from the X-Echo-Hmac-SHA256 header,
+# data is the received payload, and secret is your Client Secret.
+def validate_payload(received_hmac, data, secret):
+    generated_hmac = generate_hmac(data, secret)
+    return hmac.compare_digest(received_hmac, generated_hmac)
+```
+
+**Node**
+```js
+const crypto = require('crypto');
+
+// In this function, data is the received payload and secret is your Client Secret.
+function generateHmac(data, secret) {
+    const hmac = crypto.createHmac('sha256', secret);
+    hmac.update(data);
+    return hmac.digest('base64');
+}
+
+// In this function, receivedHmac is the HMAC from the X-Echo-Hmac-SHA256 header, 
+// data is the received payload, and secret is your Client Secret.
+function validatePayload(receivedHmac, data, secret) {
+    const generatedHmac = generateHmac(data, secret);
+    return crypto.timingSafeEqual(Buffer.from(receivedHmac), Buffer.from(generatedHmac));
+}
+```
+
+**C#**
+```csharp
+using System;
+using System.Security.Cryptography;
+using System.Text;
+
+// In this function:
+// * receivedHmac is the HMAC from the X-Echo-Hmac-SHA256 header
+// * data is the received payload
+// * secret is your Client Secret
+public bool ValidateWebhook(string data, string receivedHmac, string secret)
+{
+    byte[] key = Encoding.UTF8.GetBytes(secret);
+    byte[] body = Encoding.UTF8.GetBytes(data);
+
+    using var hmac = new HMACSHA256(key);
+    byte[] hash = hmac.ComputeHash(body);
+    string calcSha = Convert.ToBase64String(hash);
+
+    return string.Equals(calcSha, receivedHmac, StringComparison.Ordinal);
+}
+```
+
+## Webhook Retry Policy
+
+Our service ensures reliable delivery of webhook events through a structured retry process with exponential backoff. Each subsequent retry is scheduled by doubling the delay of the previous one.
+
+### Retry Schedule
+
+When a webhook delivery fails, we implement the following retry schedule:
+
+| Retry Attempt | Time After Previous Attempt | Time After Initial Failure |
+|---------------|-----------------------------|-----------------------------|
+| 1             | 5 minutes                   | 5 minutes                   |
+| 2             | 10 minutes                  | 15 minutes                  |
+| 3             | 20 minutes                  | 35 minutes                  |
+| 4             | 40 minutes                  | 1 hour, 15 minutes          |
+| 5             | 1 hour, 20 minutes          | 2 hours, 35 minutes         |
+| 6             | 2 hours, 40 minutes         | 5 hours, 15 minutes         |
+| 7             | 5 hours, 20 minutes         | 10 hours, 35 minutes        |
+| 8             | 10 hours, 40 minutes        | 21 hours, 15 minutes        |
+| 9+            | Continued doubling pattern  | Up to 3-4 days total        |
+
+### Retry Behavior Characteristics
+
+To help you implement robust webhook handling, it's important to understand these key retry behaviors:
+
+1. **Payload Consistency**: The payload content remains identical across all retry attempts for a given webhook event.
+
+2. **Header Changes**: While the payload remains the same, certain headers will change with each retry:
+
+| Header | Behavior During Retries |
+|--------|--------------------------|
+| `X-Echo-Retry-Attempt` | Increments with each retry (0 for initial attempt) |
+| `X-Echo-Timestamp` | Reflects the time of the current attempt |
+| `X-Echo-Timestamp-Original` | Maintains the timestamp of the initial attempt |
+
+3. **Webhook Id Consistency**: The `X-Echo-Webhook-Id` remains the same across all retry attempts, enabling you to detect and handle duplicate deliveries.
+
+4. **Maximum Retry Period**: Retries continue for approximately 3-4 days or until successful delivery, whichever occurs first.
+
+## Webhook Removal Policy
+
+Our service aims to provide reliable and efficient delivery of webhook events. However, consistent failures in event delivery can lead to the removal of the registered webhook.
+
+### Failure Threshold
+
+If a webhook fails 25 or more consecutive times over any period, it will be considered for removal. This threshold is set to ensure that our resources are not continually used to send events to endpoints that are not processing them.
+
+### Removal Process
+
+Upon reaching the failure threshold, the webhook will be deactivated in our system. No further events will be sent to this endpoint.
+
+### Notification of Removal
+
+Upon removing a webhook, we will send an email to the registered email address associated with the webhook. The email will indicate that the webhook is being removed due to too many failures.
+
+### Reactivation
+
+If a removed webhook needs to be reactivated, it must be registered again following our standard registration process, including URL verification.
+
+## Webhook Implementation Best Practices
+
+### Key Implementation Recommendations
+
+To ensure your webhook implementation is robust and reliable, focus on these three critical best practices:
+
+1. **Implement fast acknowledgment with asynchronous processing** to meet the 15-second response requirement
+2. **Use webhook Ids for idempotent processing** to prevent duplicate processing of retried events
+3. **Always return 200/202 status codes** regardless of internal processing errors
+
+### Handling Time-Sensitive Processing
+
+Echo's webhook system requires your endpoint to respond within 15 seconds to avoid triggering the retry mechanism. We strongly recommend implementing a two-step processing approach:
+
+```
+                  Immediate Processing (within 15 seconds)
+                  ↓
+  [Echo] → [Your Endpoint] → [Return 200/202 Response]
+            ↓
+            |                     Background Processing
+            |                     ↓
+            └────────────→ [Process Event Data]
+```
+
+#### Implementation Guidelines:
+
+1. **Fast Acknowledgment**: When receiving a webhook:
+    * Quickly validate the HMAC signature
+    * Store the raw webhook data
+    * Return a 200 or 202 response immediately
+    * Process the stored data asynchronously after responding
+
+2. **Idempotent Processing**: Use the `X-Echo-Webhook-Id` header to ensure each webhook is processed exactly once:
+    * Before processing, check if the webhook Id has already been processed
+    * If it has been processed, skip further handling but still return a 200 or 202 response
+    * This prevents duplicate processing when retries occur
+
+### Practical Tips for Echo Webhooks
+
+* **Always return 200/202**: Even if your system encounters internal errors during webhook reception, still return a 200 or 202 response. This prevents unnecessary retries and potential webhook deactivation.
+
+* **Log webhook headers**: Store the `X-Echo-Webhook-Id`, `X-Echo-Timestamp`, and retry information with the payload for troubleshooting.
+
+* **Monitor response times**: Ensure your endpoint consistently responds well within the 15-second limit to avoid triggering the retry mechanism.
