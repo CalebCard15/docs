@@ -1,0 +1,581 @@
+openapi: 3.1.0
+info:
+  version: 0.1.0
+  title: Partner-Connect Webhook Events
+  contact:
+    name: Team EchoConnect-Customer
+    url: https://echo-it.slack.com/archives/C01SLSYEQKS
+webhooks:
+  tracking-updates:
+    post:
+      summary: 214 Load Status Update Webhook
+      description: |
+        # 214 Load Status Updates - Geo-Location Tracking Events
+        
+        This webhook delivers real-time updates on shipment location and status information as freight moves through the supply chain.
+        
+        ## What is 214 Tracking?
+        
+        214 Tracking refers to Electronic Data Interchange (EDI) transaction set 214, which is the industry standard for shipment status messages and transportation carrier shipment status notifications. Echo implements this standard to deliver geo-location tracking updates that monitor the position and status of assets in transit.
+        
+        ## Event Types
+        
+        When you register your webhook with Echo, you'll receive the following types of geo-location events:
+        
+        * **Regular Updates**: Standard location updates sent at predetermined intervals (typically every 15 minutes for active shipments).
+        * **Milestone Updates**: Location updates that coincide with predefined shipment milestones such as departure, arrival at waypoints, or crossing geofences.
+        * **Exception Updates**: Triggered when unexpected deviations occur, such as route diversions or unscheduled stops.
+        
+        ## Event Triggers
+        
+        Geo-location events are triggered by various sources:
+        
+        * GPS transponders attached to transportation vehicles
+        * Mobile app check-ins from drivers or handlers
+        * IoT sensors on containers or packages
+        * Integration with carrier tracking systems
+        * Automated geofence entry/exit detection
+        
+        ## Data Retention and Frequency
+        
+        * Historical tracking data is maintained for 90 days
+        * Standard tracking frequency is 15-minute intervals for active shipments
+        * Update frequency may decrease during extended dwell periods to conserve resources
+        
+        ## Implementation Notes
+        
+        * The webhook will be sent as an HTTP POST request to your registered endpoint
+        * Your endpoint must respond with a 200 OK or 202 Accepted status code within 15 seconds
+        * The webhook includes an HMAC signature in the `X-Echo-Hmac-SHA256` header for validation
+        * Use the `X-Echo-Webhook-Id` header to ensure idempotent processing of retried events
+      
+      security:
+        - hmacSignature: []
+        - apiKey: []
+      
+      requestBody:
+        description: The webhook payload containing 214 Load Status Update information with geo-location tracking data
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookPayload'
+            examples:
+              trackingUpdate:
+                summary: Example 214 Load Status Update
+                value: {
+                  "ediType": "214 Load Status Update",
+                  "echoCustomerId": "E16452",
+                  "loadId": 57394717,
+                  "referenceData": {
+                    "bol": "78493217",
+                    "loadId": 57394717,
+                    "mode": "TL",
+                    "referenceNumber": "17df731b-0347-49ab-9989-3f0019443ad0",
+                    "scac": "ECHS",
+                    "sequenceNumber": 2,
+                    "deliverBy": "2024-03-19T05:00:00Z",
+                    "originalDeliverBy": "2024-03-19T12:00:00Z"
+                  },
+                  "status": {
+                    "statusDate": "2024-03-19T13:15:00Z",
+                    "originalTimeZone": {
+                      "id": "America/New_York",
+                      "displayName": "(UTC-05:00) Eastern Time (US & Canada)",
+                      "standardName": "Eastern Standard Time",
+                      "baseUtcOffset": "-05:00:00"
+                    },
+                    "statusCode": {
+                      "code": "AB",
+                      "description": "Delivery Appointment Date Time"
+                    },
+                    "reasonCodes": [
+                      {
+                        "code": "AM",
+                        "description": "Shipper Related"
+                      }
+                    ],
+                    "equipment": {
+                      "scac": "ECHS",
+                      "number": "",
+                      "type": "Van 53'",
+                      "code": "TV"
+                    },
+                    "location": {
+                      "city": "SANDY SPRINGS",
+                      "stateOrProvince": "SC",
+                      "latitude": 34.6339591,
+                      "longitude": -82.5789971
+                    },
+                    "stops": [
+                      {
+                        "stopType": "Pick",
+                        "sequence": 1,
+                        "stopNumber": 1,
+                        "stopDate": null,
+                        "originalTimeZone": {
+                          "id": "America/New_York",
+                          "displayName": "(UTC-05:00) Eastern Time (US & Canada)",
+                          "standardName": "Eastern Standard Time",
+                          "baseUtcOffset": "-05:00:00"
+                        },
+                        "estimatedDateTime": "2024-03-19T13:15:00Z",
+                        "address": {
+                          "name": "Green Room",
+                          "address1": "1302 29TH ST NW",
+                          "address2": "",
+                          "city": "AUBURN",
+                          "stateOrProvince": "WA",
+                          "postalCode": "98001",
+                          "country": "US"
+                        }
+                      },
+                      {
+                        "stopType": "Drop",
+                        "sequence": 2,
+                        "stopNumber": 1,
+                        "stopDate": null,
+                        "originalTimeZone": {
+                          "id": "America/Chicago",
+                          "displayName": "(UTC-06:00) Central Time (US & Canada)",
+                          "standardName": "Central Standard Time",
+                          "baseUtcOffset": "-06:00:00"
+                        },
+                        "estimatedDateTime": "2024-03-19T05:00:00Z",
+                        "address": {
+                          "name": "Pacorini",
+                          "address1": "2010 NAZARETH CHURCH RD",
+                          "address2": "",
+                          "city": "SPARTANBURG",
+                          "stateOrProvince": "SC",
+                          "postalCode": "29301",
+                          "country": "US"
+                        }
+                      }
+                    ],
+                    "stopCount": 2,
+                    "pickCount": 1,
+                    "dropCount": 1
+                  },
+                  "shipmentTotal": {
+                    "weight": 44092.0,
+                    "handlingQuantity": 21,
+                    "packageQuantity": 21,
+                    "typeQualifier": "B",
+                    "unitOfMeasure": "L"
+                  },
+                  "remarks": [
+                    "AB",
+                    "Delivery appointment updated from (3/19/2024 120000 AM-3/19/2024 120000 AM) to (3/19/2024 71500 AM-3/19/2024 71500 AM)"
+                  ]
+                }
+      
+      # Responses aren't typically documented for webhooks since they are sent by the API provider,
+      # but we can include expectations for the webhook receiver
+      responses:
+        '200':
+          description: Webhook received successfully
+        '202':
+          description: Webhook acknowledged for processing
+      
+      # Headers that will be sent with the webhook
+      parameters:
+        - $ref: '#/components/parameters/X-Echo-Hmac-SHA256'
+        - $ref: '#/components/parameters/X-Echo-Timestamp'
+        - $ref: '#/components/parameters/X-Echo-Timestamp-Original'
+        - $ref: '#/components/parameters/X-Echo-Retry-Attempt'
+        - $ref: '#/components/parameters/X-Echo-Webhook-Id'
+        - $ref: '#/components/parameters/x-api-key'
+
+components:
+  # Define security schemes (HMAC and API Key)
+  securitySchemes:
+    hmacSignature:
+      type: http
+      scheme: custom
+      description: |
+        Echo uses HMAC-SHA256 signatures to authenticate webhook payloads. The signature is sent in the
+        `X-Echo-Hmac-SHA256` header and can be validated using your Client Secret.
+        
+        For detailed information on validating webhooks, see the [Webhook Payload Validation](#webhook-payload-validation) section.
+    
+    apiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
+      description: |
+        Optional API key that can be provided during webhook registration. If provided, this key will be
+        included in the `x-api-key` header of all webhook requests.
+  
+  # Define common parameters (headers)
+  parameters:
+    X-Echo-Hmac-SHA256:
+      name: X-Echo-Hmac-SHA256
+      in: header
+      required: true
+      schema:
+        type: string
+      description: |
+        Base64-encoded HMAC-SHA256 hash of the payload, generated using your Client Secret.
+        Use this header to validate that the webhook was sent by Echo.
+    
+    X-Echo-Timestamp:
+      name: X-Echo-Timestamp
+      in: header
+      required: true
+      schema:
+        type: string
+        format: date-time
+      description: Date/Time in UTC ISO 8601 format of when the message was sent.
+    
+    X-Echo-Timestamp-Original:
+      name: X-Echo-Timestamp-Original
+      in: header
+      required: true
+      schema:
+        type: string
+        format: date-time
+      description: |
+        When a retry attempt is required, this value will be when the initial request was made.
+        The initial request will always match the `X-Echo-Timestamp` header.
+    
+    X-Echo-Retry-Attempt:
+      name: X-Echo-Retry-Attempt
+      in: header
+      required: true
+      schema:
+        type: integer
+        minimum: 0
+      description: |
+        When a retry attempt is required, this value will be the current attempt number.
+        The initial request will always be 0.
+    
+    X-Echo-Webhook-Id:
+      name: X-Echo-Webhook-Id
+      in: header
+      required: true
+      schema:
+        type: string
+      description: |
+        The Echo identifier for the webhook request. Every webhook request will have a unique identifier,
+        regardless of retry attempt or not. Use this for idempotent processing.
+    
+    x-api-key:
+      name: x-api-key
+      in: header
+      required: false
+      schema:
+        type: string
+      description: |
+        The optional API key provided when registering your webhook with Echo.
+        If an API key was not provided during registration, this header will not be present.
+  
+  # Define schemas for the webhook payload
+  schemas:
+    WebhookPayload:
+      type: object
+      description: The structure of the 214 Load Status Update webhook payload containing geo-location tracking events.
+      required:
+        - ediType
+        - echoCustomerId
+        - loadId
+        - referenceData
+        - status
+      properties:
+        ediType:
+          type: string
+          description: The EDI transaction type, always "214 Load Status Update" for tracking events.
+          examples: ["214 Load Status Update"]
+        echoCustomerId:
+          type: string
+          description: The Echo customer identifier.
+          examples: ["E16452"]
+        loadId:
+          type: integer
+          description: Unique identifier for the load being tracked.
+          examples: [57394717]
+        referenceData:
+          $ref: '#/components/schemas/ReferenceData'
+        status:
+          $ref: '#/components/schemas/Status'
+        shipmentTotal:
+          $ref: '#/components/schemas/ShipmentTotal'
+        remarks:
+          type: array
+          description: Additional comments or notes related to the status update.
+          items:
+            type: string
+          examples: [["AB", "Delivery appointment updated from (3/19/2024 120000 AM-3/19/2024 120000 AM) to (3/19/2024 71500 AM-3/19/2024 71500 AM)"]]
+    
+    ReferenceData:
+      type: object
+      description: Reference information for the load and shipment.
+      required:
+        - loadId
+        - referenceNumber
+      properties:
+        bol:
+          type: string
+          description: Bill of Lading number.
+          examples: ["78493217"]
+        loadId:
+          type: integer
+          description: Echo's internal load identifier.
+          examples: [57394717]
+        mode:
+          type: string
+          description: Transportation mode (TL for Truckload, LTL for Less than Truckload, etc.).
+          examples: ["TL"]
+        referenceNumber:
+          type: string
+          description: Unique reference identifier for the shipment.
+          examples: ["17df731b-0347-49ab-9989-3f0019443ad0"]
+        scac:
+          type: string
+          description: Standard Carrier Alpha Code - a unique 2-4 letter code identifying the carrier.
+          examples: ["ECHS"]
+        sequenceNumber:
+          type: integer
+          description: Sequence number of the status update for this load.
+          examples: [2]
+        deliverBy:
+          type: string
+          format: date-time
+          description: Current scheduled delivery date/time in UTC.
+          examples: ["2024-03-19T05:00:00Z"]
+        originalDeliverBy:
+          type: string
+          format: date-time
+          description: Original scheduled delivery date/time in UTC.
+          examples: ["2024-03-19T12:00:00Z"]
+    
+    Status:
+      type: object
+      description: Current status information for the shipment.
+      required:
+        - statusDate
+        - statusCode
+      properties:
+        statusDate:
+          type: string
+          format: date-time
+          description: Date and time of the status update in UTC.
+          examples: ["2024-03-19T13:15:00Z"]
+        originalTimeZone:
+          $ref: '#/components/schemas/TimeZone'
+        statusCode:
+          $ref: '#/components/schemas/StatusCode'
+        reasonCodes:
+          type: array
+          description: List of reason codes explaining the status update.
+          items:
+            $ref: '#/components/schemas/ReasonCode'
+        equipment:
+          $ref: '#/components/schemas/Equipment'
+        location:
+          $ref: '#/components/schemas/Location'
+        stops:
+          type: array
+          description: List of stops (pickup and delivery locations) for the shipment.
+          items:
+            $ref: '#/components/schemas/Stop'
+        stopCount:
+          type: integer
+          description: Total number of stops for this shipment.
+          examples: [2]
+        pickCount:
+          type: integer
+          description: Number of pickup stops for this shipment.
+          examples: [1]
+        dropCount:
+          type: integer
+          description: Number of delivery stops for this shipment.
+          examples: [1]
+    
+    TimeZone:
+      type: object
+      description: Time zone information for dates in the payload.
+      properties:
+        id:
+          type: string
+          description: IANA time zone identifier.
+          examples: ["America/New_York"]
+        displayName:
+          type: string
+          description: Human-readable display name for the time zone.
+          examples: ["(UTC-05:00) Eastern Time (US & Canada)"]
+        standardName:
+          type: string
+          description: Standard name for the time zone.
+          examples: ["Eastern Standard Time"]
+        baseUtcOffset:
+          type: string
+          description: UTC offset in hours:minutes:seconds format.
+          examples: ["-05:00:00"]
+    
+    StatusCode:
+      type: object
+      description: Code describing the current status of the shipment.
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          description: Two-letter code representing the status.
+          examples: ["AB"]
+        description:
+          type: string
+          description: Human-readable description of the status code.
+          examples: ["Delivery Appointment Date Time"]
+    
+    ReasonCode:
+      type: object
+      description: Code explaining the reason for a status change.
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          description: Two-letter code representing the reason.
+          examples: ["AM"]
+        description:
+          type: string
+          description: Human-readable description of the reason code.
+          examples: ["Shipper Related"]
+    
+    Equipment:
+      type: object
+      description: Information about the transportation equipment.
+      properties:
+        scac:
+          type: string
+          description: Standard Carrier Alpha Code - a unique 2-4 letter code identifying the carrier.
+          examples: ["ECHS"]
+        number:
+          type: string
+          description: Equipment identification number.
+          examples: [""]
+        type:
+          type: string
+          description: Type of equipment used for the shipment.
+          examples: ["Van 53'"]
+        code:
+          type: string
+          description: Code representing the equipment type.
+          examples: ["TV"]
+    
+    Location:
+      type: object
+      description: Current geographic location of the shipment.
+      properties:
+        city:
+          type: string
+          description: City name.
+          examples: ["SANDY SPRINGS"]
+        stateOrProvince:
+          type: string
+          description: State or province code.
+          examples: ["SC"]
+        latitude:
+          type: number
+          format: double
+          description: Latitude coordinate in decimal degrees.
+          examples: [34.6339591]
+        longitude:
+          type: number
+          format: double
+          description: Longitude coordinate in decimal degrees.
+          examples: [-82.5789971]
+    
+    Stop:
+      type: object
+      description: Information about a pickup or delivery stop.
+      required:
+        - stopType
+        - sequence
+      properties:
+        stopType:
+          type: string
+          description: Type of stop (Pick for pickup, Drop for delivery).
+          enum: ["Pick", "Drop"]
+          examples: ["Pick"]
+        sequence:
+          type: integer
+          description: Sequence number of this stop within all stops of its type.
+          examples: [1]
+        stopNumber:
+          type: integer
+          description: Overall stop number in the route.
+          examples: [1]
+        stopDate:
+          type: [string, "null"]
+          format: date-time
+          description: Actual date and time when the stop was completed (null if not yet completed).
+          examples: [null]
+        originalTimeZone:
+          $ref: '#/components/schemas/TimeZone'
+        estimatedDateTime:
+          type: string
+          format: date-time
+          description: Estimated date and time for this stop in UTC.
+          examples: ["2024-03-19T13:15:00Z"]
+        address:
+          $ref: '#/components/schemas/Address'
+    
+    Address:
+      type: object
+      description: Physical address information.
+      properties:
+        name:
+          type: string
+          description: Name of the location or facility.
+          examples: ["Green Room"]
+        address1:
+          type: string
+          description: Street address, line 1.
+          examples: ["1302 29TH ST NW"]
+        address2:
+          type: string
+          description: Street address, line 2.
+          examples: [""]
+        city:
+          type: string
+          description: City name.
+          examples: ["AUBURN"]
+        stateOrProvince:
+          type: string
+          description: State or province code.
+          examples: ["WA"]
+        postalCode:
+          type: string
+          description: Postal or ZIP code.
+          examples: ["98001"]
+        country:
+          type: string
+          description: Country code.
+          examples: ["US"]
+    
+    ShipmentTotal:
+      type: object
+      description: Totals and quantities for the shipment.
+      properties:
+        weight:
+          type: number
+          format: double
+          description: Total weight of the shipment.
+          examples: [44092.0]
+        handlingQuantity:
+          type: integer
+          description: Number of handling units.
+          examples: [21]
+        packageQuantity:
+          type: integer
+          description: Number of packages.
+          examples: [21]
+        typeQualifier:
+          type: string
+          description: Type qualifier code for the shipment.
+          examples: ["B"]
+        unitOfMeasure:
+          type: string
+          description: Unit of measure code (L for pounds, K for kilograms, etc.).
+          examples: ["L"]
