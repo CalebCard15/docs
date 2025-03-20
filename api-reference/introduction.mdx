@@ -1,11 +1,7 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: 'Echo Tracking Webhook'
+description: 'Explanation on Echo''s Tracking Webhook'
 ---
-
-# Echo Webhook API
-    
-This specification documents the webhooks exposed by Echo for customers to receive real-time data.
 
 ## Overview
 
@@ -75,9 +71,9 @@ To validate the payload, you should generate your own HMAC-SHA256 hash of the pa
 Compare the HMAC in the `X-Echo-Hmac-SHA256` header with the HMAC you generated. If they match, then the payload is valid and was sent from our service.
 
 ### HMAC Verification Example
+<CodeGroup>
 
-**Python**
-```python
+```python verification.py
 import hashlib
 import hmac
 import base64
@@ -94,8 +90,7 @@ def validate_payload(received_hmac, data, secret):
     return hmac.compare_digest(received_hmac, generated_hmac)
 ```
 
-**Node**
-```js
+```js verification.js
 const crypto = require('crypto');
 
 // In this function, data is the received payload and secret is your Client Secret.
@@ -113,8 +108,7 @@ function validatePayload(receivedHmac, data, secret) {
 }
 ```
 
-**C#**
-```csharp
+```csharp verification.cs
 using System;
 using System.Security.Cryptography;
 using System.Text;
@@ -135,6 +129,7 @@ public bool ValidateWebhook(string data, string receivedHmac, string secret)
     return string.Equals(calcSha, receivedHmac, StringComparison.Ordinal);
 }
 ```
+</CodeGroup>
 
 ## Webhook Retry Policy
 
