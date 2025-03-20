@@ -59,115 +59,92 @@ webhooks:
           application/json:
             schema:
               $ref: '#/components/schemas/WebhookPayload'
-            examples:
-              trackingUpdate:
-                summary: Example 214 Load Status Update
-                value: {
-                  "ediType": "214 Load Status Update",
-                  "echoCustomerId": "E16452",
-                  "loadId": 57394717,
-                  "referenceData": {
-                    "bol": "78493217",
-                    "loadId": 57394717,
-                    "mode": "TL",
-                    "referenceNumber": "17df731b-0347-49ab-9989-3f0019443ad0",
-                    "scac": "ECHS",
-                    "sequenceNumber": 2,
-                    "deliverBy": "2024-03-19T05:00:00Z",
-                    "originalDeliverBy": "2024-03-19T12:00:00Z"
-                  },
-                  "status": {
-                    "statusDate": "2024-03-19T13:15:00Z",
-                    "originalTimeZone": {
-                      "id": "America/New_York",
-                      "displayName": "(UTC-05:00) Eastern Time (US & Canada)",
-                      "standardName": "Eastern Standard Time",
-                      "baseUtcOffset": "-05:00:00"
-                    },
-                    "statusCode": {
-                      "code": "AB",
-                      "description": "Delivery Appointment Date Time"
-                    },
-                    "reasonCodes": [
-                      {
-                        "code": "AM",
-                        "description": "Shipper Related"
-                      }
-                    ],
-                    "equipment": {
-                      "scac": "ECHS",
-                      "number": "",
-                      "type": "Van 53'",
-                      "code": "TV"
-                    },
-                    "location": {
-                      "city": "SANDY SPRINGS",
-                      "stateOrProvince": "SC",
-                      "latitude": 34.6339591,
-                      "longitude": -82.5789971
-                    },
-                    "stops": [
-                      {
-                        "stopType": "Pick",
-                        "sequence": 1,
-                        "stopNumber": 1,
-                        "stopDate": null,
-                        "originalTimeZone": {
-                          "id": "America/New_York",
-                          "displayName": "(UTC-05:00) Eastern Time (US & Canada)",
-                          "standardName": "Eastern Standard Time",
-                          "baseUtcOffset": "-05:00:00"
-                        },
-                        "estimatedDateTime": "2024-03-19T13:15:00Z",
-                        "address": {
-                          "name": "Green Room",
-                          "address1": "1302 29TH ST NW",
-                          "address2": "",
-                          "city": "AUBURN",
-                          "stateOrProvince": "WA",
-                          "postalCode": "98001",
-                          "country": "US"
-                        }
-                      },
-                      {
-                        "stopType": "Drop",
-                        "sequence": 2,
-                        "stopNumber": 1,
-                        "stopDate": null,
-                        "originalTimeZone": {
-                          "id": "America/Chicago",
-                          "displayName": "(UTC-06:00) Central Time (US & Canada)",
-                          "standardName": "Central Standard Time",
-                          "baseUtcOffset": "-06:00:00"
-                        },
-                        "estimatedDateTime": "2024-03-19T05:00:00Z",
-                        "address": {
-                          "name": "Pacorini",
-                          "address1": "2010 NAZARETH CHURCH RD",
-                          "address2": "",
-                          "city": "SPARTANBURG",
-                          "stateOrProvince": "SC",
-                          "postalCode": "29301",
-                          "country": "US"
-                        }
-                      }
-                    ],
-                    "stopCount": 2,
-                    "pickCount": 1,
-                    "dropCount": 1
-                  },
-                  "shipmentTotal": {
-                    "weight": 44092.0,
-                    "handlingQuantity": 21,
-                    "packageQuantity": 21,
-                    "typeQualifier": "B",
-                    "unitOfMeasure": "L"
-                  },
-                  "remarks": [
-                    "AB",
-                    "Delivery appointment updated from (3/19/2024 120000 AM-3/19/2024 120000 AM) to (3/19/2024 71500 AM-3/19/2024 71500 AM)"
-                  ]
-                }
+            example:
+              ediType: 214 Load Status Update
+              echoCustomerId: E16452
+              loadId: 57394717
+              referenceData:
+                bol: '78493217'
+                loadId: 57394717
+                mode: TL
+                referenceNumber: 17df731b-0347-49ab-9989-3f0019443ad0
+                scac: ECHS
+                sequenceNumber: 2
+                deliverBy: '2024-03-19T05:00:00Z'
+                originalDeliverBy: '2024-03-19T12:00:00Z'
+              status:
+                statusDate: '2024-03-19T13:15:00Z'
+                originalTimeZone:
+                  id: America/New_York
+                  displayName: "(UTC-05:00) Eastern Time (US & Canada)"
+                  standardName: Eastern Standard Time
+                  baseUtcOffset: "-05:00:00"
+                statusCode:
+                  code: AB
+                  description: Delivery Appointment Date Time
+                reasonCodes:
+                - code: AM
+                  description: Shipper Related
+                equipment:
+                  scac: ECHS
+                  number: ''
+                  type: Van 53'
+                  code: TV
+                location:
+                  city: SANDY SPRINGS
+                  stateOrProvince: SC
+                  latitude: 34.6339591
+                  longitude: -82.5789971
+                stops:
+                - stopType: Pick
+                  sequence: 1
+                  stopNumber: 1
+                  stopDate: 
+                  originalTimeZone:
+                    id: America/New_York
+                    displayName: "(UTC-05:00) Eastern Time (US & Canada)"
+                    standardName: Eastern Standard Time
+                    baseUtcOffset: "-05:00:00"
+                  estimatedDateTime: '2024-03-19T13:15:00Z'
+                  address:
+                    name: Green Room
+                    address1: 1302 29TH ST NW
+                    address2: ''
+                    city: AUBURN
+                    stateOrProvince: WA
+                    postalCode: '98001'
+                    country: US
+                - stopType: Drop
+                  sequence: 2
+                  stopNumber: 1
+                  stopDate: 
+                  originalTimeZone:
+                    id: America/Chicago
+                    displayName: "(UTC-06:00) Central Time (US & Canada)"
+                    standardName: Central Standard Time
+                    baseUtcOffset: "-06:00:00"
+                  estimatedDateTime: '2024-03-19T05:00:00Z'
+                  address:
+                    name: Pacorini
+                    address1: 2010 NAZARETH CHURCH RD
+                    address2: ''
+                    city: SPARTANBURG
+                    stateOrProvince: SC
+                    postalCode: '29301'
+                    country: US
+                stopCount: 2
+                pickCount: 1
+                dropCount: 1
+              shipmentTotal:
+                weight: 44092
+                handlingQuantity: 21
+                packageQuantity: 21
+                typeQualifier: B
+                unitOfMeasure: L
+              remarks:
+              - AB
+              - Delivery appointment updated from (3/19/2024 120000 AM-3/19/2024 120000 AM) to (3/19/2024
+                71500 AM-3/19/2024 71500 AM)
       
       # Responses aren't typically documented for webhooks since they are sent by the API provider,
       # but we can include expectations for the webhook receiver
