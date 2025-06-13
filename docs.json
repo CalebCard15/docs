@@ -23,9 +23,15 @@
             ]
           },
           {
-            "group": "Endpoint Examples",
+            "group": "Tracking Webhook",
             "pages": [
               "api-reference/endpoint/webhook"
+            ]
+          },
+          {
+            "group": "Objects",
+            "pages": [
+              "api-reference/refs/referenceData"
             ]
           }
         ]

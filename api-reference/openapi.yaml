@@ -168,7 +168,7 @@ components:
   securitySchemes:
     hmacSignature:
       type: http
-      scheme: custom
+      scheme: basic
       description: |
         Echo uses HMAC-SHA256 signatures to authenticate webhook payloads. The signature is sent in the
         `X-Echo-Hmac-SHA256` header and can be validated using your Client Secret.
