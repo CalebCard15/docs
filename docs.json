@@ -1,25 +1,43 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "maple",
+  "theme": "willow",
   "name": "Caleb's Trucks",
   "colors": {
     "primary": "#16A34A",
-    "light": "#07C983",
+    "light": "#84c969",
     "dark": "#15803D"
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "tabs": [
+    "dropdowns": [
       {
-        "tab": "Guides"
-      },
-      {
-        "tab": "API Reference",
+        "dropdown": "Customer Webhooks",
+        "icon": "book-open",
         "groups": [
           {
             "group": "API Documentation",
             "pages": [
-              "api-reference/introduction"
+              "customer-webhooks/introduction",
+              "customer-webhooks/cors"
+            ]
+          },
+          {
+            "group": "Tracking Webhook",
+            "pages": [
+              "customer-webhooks/endpoint/tracking-webhook"
+            ]
+          }
+        ]
+      },
+      {
+        "dropdown": "Shipment API",
+        "icon": "square-terminal",
+        "groups": [
+          {
+            "group": "API Documentation",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/cors"
             ]
           },
           {
@@ -27,11 +45,28 @@
             "pages": [
               "api-reference/endpoint/webhook"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "dropdown": "Accelerator",
+        "tabs": [
           {
-            "group": "Objects",
-            "pages": [
-              "api-reference/refs/referenceData"
+            "tab": "API Reference",
+            "groups": [
+              {
+                "group": "API Documentation",
+                "pages": [
+                  "api-reference/introduction",
+                  "api-reference/cors"
+                ]
+              },
+              {
+                "group": "Tracking Webhook",
+                "pages": [
+                  "api-reference/endpoint/webhook"
+                ]
+              }
             ]
           }
         ]

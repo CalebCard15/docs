@@ -1,0 +1,212 @@
+---
+title: 'Options Docs'
+description: 'Explanation on OPTIONS requirement for tracking webhook'
+---
+
+# CORS Configuration for Wildcard Subdomains
+
+[[_TOC_]]
+
+This document provides configuration examples for setting up CORS (Cross-Origin Resource Sharing) to allow requests from any subdomain of a specific domain (`echo.com` in this example).
+
+## Key Points for Wildcard Subdomain Configuration
+
+- The CORS specification doesn't directly support wildcard patterns like `*.example.com` in the `Access-Control-Allow-Origin` header
+- The recommended approach is to:
+  1. Match the incoming origin against your pattern on the server side
+  2. If it matches, echo back that specific origin in the response headers
+  3. Always include `Vary: Origin` header to ensure proper caching behavior
+- Header names in `Access-Control-Allow-Headers` are case-insensitive
+
+## CORS Wildcard Configuration
+
+```
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: POST, OPTIONS
+Access-Control-Allow-Headers: Content-Type, X-API-Key
+Access-Control-Max-Age: 86400
+```
+
+# Server Specific Examples
+
+## 1. Apache
+
+Add this to your `.htaccess` file or server configuration:
+
+```apache
+<IfModule mod_headers.c>
+    # Extract the origin if it matches a subdomain of echo.com
+    SetEnvIf Origin "^https?://([^/]+\.)?echo\.com(:\d+)?$" CORS_ORIGIN=$0
+    
+    # Only send CORS headers if the origin matches
+    Header set Access-Control-Allow-Origin "%{CORS_ORIGIN}e" env=CORS_ORIGIN
+    Header set Access-Control-Allow-Methods "POST, OPTIONS" env=CORS_ORIGIN
+    Header set Access-Control-Allow-Headers "Content-Type, X-API-Key" env=CORS_ORIGIN
+    Header set Access-Control-Max-Age "86400" env=CORS_ORIGIN
+    
+    # Important for caching behavior with dynamic CORS origins
+    Header append Vary "Origin" env=CORS_ORIGIN
+    
+    # Handle preflight OPTIONS requests
+    RewriteEngine On
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ $1 [R=200,L,E=HTTP_ORIGIN:%{HTTP:ORIGIN}]
+</IfModule>
+```
+
+## 2. Nginx
+
+Add this to your server block:
+
+```nginx
+# CORS configuration for echo.com subdomains
+map $http_origin $cors_origin {
+    default "";
+    ~^https?://([^/]+\.)?echo\.com(:\d+)?$ $http_origin;
+}
+
+server {
+    # Your other server configuration here
+    
+    location / {
+        # Your other location directives here
+        
+        # CORS headers
+        if ($cors_origin) {
+            add_header Access-Control-Allow-Origin $cors_origin;
+            add_header Access-Control-Allow-Methods 'POST, OPTIONS';
+            add_header Access-Control-Allow-Headers 'Content-Type, X-API-Key';
+            add_header Access-Control-Max-Age 86400;
+            add_header Vary 'Origin';
+        }
+        
+        # Handle preflight OPTIONS requests
+        if ($request_method = 'OPTIONS') {
+            add_header Content-Length 0;
+            add_header Content-Type text/plain;
+            return 200;
+        }
+    }
+}
+```
+
+## 3. ASP.NET Core
+
+In your `Program.cs` or `Startup.cs`:
+
+```csharp
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("EchoSubdomainPolicy", policy =>
+    {
+        policy.SetIsOriginAllowedToAllowWildcardSubdomains()
+              .WithOrigins("http://*.echo.com", "https://*.echo.com")
+              .AllowAnyMethod()
+              .WithHeaders("Content-Type", "X-API-Key");
+    });
+});
+
+// Apply the CORS policy in the pipeline
+app.UseCors("EchoSubdomainPolicy");
+```
+
+## 4. Express.js (Node.js)
+
+```javascript
+const express = require('express');
+const app = express();
+
+// CORS middleware for echo.com subdomains
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    
+    // Check if origin is from a subdomain of echo.com
+    if (origin && /^https?:\/\/([^/]+\.)?echo\.com(:\d+)?$/.test(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-API-Key');
+        res.setHeader('Access-Control-Max-Age', '86400');
+        res.setHeader('Vary', 'Origin');
+    }
+    
+    // Handle preflight OPTIONS requests
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    
+    next();
+});
+
+// Your routes and rest of application here
+```
+
+## 5. Spring Boot (Java)
+
+```java
+@Configuration
+public class CorsConfig implements WebMvcConfigurer {
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+            .allowedOriginPatterns("http://*.echo.com", "https://*.echo.com")
+            .allowedMethods("POST", "OPTIONS")
+            .allowedHeaders("Content-Type", "X-API-Key")
+            .maxAge(86400);
+    }
+}
+```
+
+## 6. Django (Python)
+
+Install the django-cors-headers package and add to your settings.py:
+
+```python
+INSTALLED_APPS = [
+    # Other apps
+    'corsheaders',
+]
+
+MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    # Other middleware
+]
+
+# Custom CORS configuration function
+def cors_allow_echo_subdomains(origin, pattern_list):
+    import re
+    return origin and re.match(r'^https?://([^/]+\.)?echo\.com(:\d+)?$', origin)
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r'^https?://([^/]+\.)?echo\.com(:\d+)?$',
+]
+
+CORS_ALLOW_METHODS = [
+    'POST',
+    'OPTIONS',
+]
+
+CORS_ALLOW_HEADERS = [
+    'content-type',
+    'x-api-key',
+]
+
+CORS_PREFLIGHT_MAX_AGE = 86400
+```
+
+## 7. AWS API Gateway
+
+Using CloudFormation or through the console:
+
+```yaml
+CorsConfiguration:
+  AllowOrigins:
+    - 'http://*.echo.com'
+    - 'https://*.echo.com'
+  AllowMethods:
+    - POST
+    - OPTIONS
+  AllowHeaders:
+    - 'Content-Type'
+    - 'X-API-Key'
+  MaxAge: 86400
+```
